@@ -1,0 +1,141 @@
+.shell {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.section {
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+}
+
+.section h2,
+.label {
+  color: var(--foreground);
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+
+.select,
+.prompt {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--foreground);
+  width: 100%;
+}
+
+.select {
+  max-width: 240px;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 0;
+}
+
+.prompt {
+  min-height: 132px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.primaryButton,
+.secondaryButton {
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 40px;
+  min-width: 88px;
+  padding: 0 18px;
+}
+
+.primaryButton {
+  background: var(--primary);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.secondaryButton {
+  background: var(--danger);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.response {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-height: 140px;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.error {
+  color: var(--danger);
+  margin: 0 0 10px;
+}
+
+.log {
+  color: var(--muted);
+  margin: 0;
+  padding-left: 20px;
+}
+
+.log li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 24px, 960px);
+    padding-top: 20px;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}
