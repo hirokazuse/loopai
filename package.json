@@ -4,10 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "phase1": "tsc src/run-phase1.ts --outDir dist --module commonjs --target ES2020 --esModuleInterop --resolveJsonModule --skipLibCheck --rootDir src --types node && node dist/run-phase1.js",
+    "api": "tsc src/api/server.ts --outDir dist --module commonjs --target ES2020 --esModuleInterop --resolveJsonModule --skipLibCheck --rootDir src --types node && node dist/api/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
 }

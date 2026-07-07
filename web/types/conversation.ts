@@ -1,6 +1,6 @@
 export type ConnectorId = "chatgpt";
 
-export type ConversationStatus = "idle" | "generating" | "interrupted" | "waitingUser";
+export type ConversationStatus = "idle" | "generating" | "interrupted" | "waitingUser" | "completed" | "failed";
 
 export type StatusLabel = "Idle" | "Generating" | "Interrupted" | "WaitingUser";
 

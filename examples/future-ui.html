@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LoopAI Ver.1.0 Vision Prototype</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --bg-elev: #10192f;
+        --bg-soft: #0f1729;
+        --panel: rgba(14, 22, 41, 0.9);
+        --panel-strong: rgba(18, 28, 52, 0.96);
+        --line: rgba(146, 166, 196, 0.18);
+        --line-strong: rgba(146, 166, 196, 0.32);
+        --text: #e7edf7;
+        --muted: #91a0b7;
+        --subtle: #6e7c94;
+        --accent: #7cc8ff;
+        --accent-strong: #9ad4ff;
+        --success: #53d7a8;
+        --warning: #f4c76a;
+        --danger: #ff7d7d;
+        --pilot: #c3cfdf;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+        --radius: 18px;
+        --radius-sm: 12px;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        --sans: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: var(--sans);
+        background:
+          radial-gradient(circle at top left, rgba(124, 200, 255, 0.14), transparent 34%),
+          radial-gradient(circle at 85% 10%, rgba(83, 215, 168, 0.08), transparent 30%),
+          linear-gradient(180deg, #08101d 0%, #0b1220 42%, #0a0f18 100%);
+        color: var(--text);
+      }
+
+      .frame {
+        min-height: 100vh;
+        padding: 22px;
+      }
+
+      .app {
+        min-height: calc(100vh - 44px);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .topbar,
+      .composer,
+      .workspace {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(16, 25, 47, 0.92), rgba(10, 15, 24, 0.92));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar {
+        border-radius: calc(var(--radius) + 2px);
+        padding: 20px 22px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        display: grid;
+        gap: 6px;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 3rem);
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+
+      .brand p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.98rem;
+      }
+
+      .status-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font-size: 0.88rem;
+        letter-spacing: 0.02em;
+      }
+
+      .chip strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .signal {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 0 6px rgba(83, 215, 168, 0.14);
+      }
+
+      .workspace {
+        border-radius: var(--radius);
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr) 320px;
+        overflow: hidden;
+        min-height: 0;
+      }
+
+      .sidebar,
+      .timeline,
+      .inspector {
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar,
+      .inspector {
+        background: rgba(7, 11, 20, 0.42);
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        padding: 20px 18px 18px;
+        gap: 18px;
+      }
+
+      .inspector {
+        border-left: 1px solid var(--line);
+        padding: 20px 18px 18px;
+        gap: 18px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .panel-title h2 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 650;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .panel-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(16, 25, 47, 0.76), rgba(10, 15, 24, 0.9));
+        padding: 16px;
+      }
+
+      .connector-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .connector {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        padding: 12px 13px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .connector.active {
+        border-color: rgba(124, 200, 255, 0.35);
+        background:
+          linear-gradient(180deg, rgba(124, 200, 255, 0.11), rgba(124, 200, 255, 0.04)),
+          rgba(255, 255, 255, 0.02);
+      }
+
+      .connector .left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.1);
+        flex: 0 0 auto;
+      }
+
+      .dot.live {
+        background: var(--success);
+        box-shadow: 0 0 0 6px rgba(83, 215, 168, 0.12);
+      }
+
+      .dot.warm {
+        background: var(--warning);
+        box-shadow: 0 0 0 6px rgba(244, 199, 106, 0.12);
+      }
+
+      .dot.off {
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .connector strong,
+      .metric strong {
+        display: block;
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .connector span,
+      .metric span,
+      .meta span {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .connector .state {
+        font-size: 0.76rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+        color: var(--subtle);
+        font-size: 0.83rem;
+        line-height: 1.55;
+      }
+
+      .timeline {
+        padding: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+          rgba(11, 16, 32, 0.78);
+        min-width: 0;
+      }
+
+      .timeline-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .timeline-header h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .timeline-header .meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .timeline-track {
+        position: relative;
+        display: grid;
+        gap: 12px;
+        padding-right: 4px;
+      }
+
+      .timeline-track::before {
+        content: "";
+        position: absolute;
+        left: 16px;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(180deg, rgba(146, 166, 196, 0.26), rgba(146, 166, 196, 0.05));
+      }
+
+      .event {
+        position: relative;
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px 16px 14px 0;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .event.current {
+        border-color: rgba(124, 200, 255, 0.42);
+        background:
+          linear-gradient(180deg, rgba(124, 200, 255, 0.12), rgba(124, 200, 255, 0.04)),
+          rgba(255, 255, 255, 0.02);
+        box-shadow: inset 0 0 0 1px rgba(124, 200, 255, 0.08);
+      }
+
+      .event .rail {
+        display: flex;
+        justify-content: center;
+        padding-top: 3px;
+      }
+
+      .event .rail span {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.02);
+      }
+
+      .event.current .rail span {
+        background: var(--accent);
+        border-color: rgba(255, 255, 255, 0.45);
+        box-shadow: 0 0 0 9px rgba(124, 200, 255, 0.14);
+      }
+
+      .bubble {
+        border-left: 1px solid transparent;
+        padding-left: 16px;
+      }
+
+      .bubble-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .speaker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .speaker-name {
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        color: var(--text);
+      }
+
+      .speaker-tag {
+        font-size: 0.73rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+      }
+
+      .event.current .speaker-name {
+        color: var(--accent-strong);
+      }
+
+      .timestamp {
+        color: var(--subtle);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        white-space: nowrap;
+      }
+
+      .log {
+        margin: 0;
+        color: #dce5f2;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+
+      .log code {
+        font-family: var(--mono);
+        color: #bfe7ff;
+      }
+
+      .event.current .log {
+        color: #eff7ff;
+      }
+
+      .event .foot {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .flag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.76rem;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .flag.live {
+        color: #d8f3ff;
+        border-color: rgba(124, 200, 255, 0.36);
+        background: rgba(124, 200, 255, 0.08);
+      }
+
+      .composer {
+        border-radius: var(--radius);
+        padding: 18px 20px 20px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .composer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .composer-head h2 {
+        margin: 0;
+        font-size: 0.95rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .composer-note {
+        color: var(--subtle);
+        font-size: 0.82rem;
+      }
+
+      .composer-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .prompt-box {
+        min-height: 144px;
+        border: 1px solid var(--line-strong);
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+          rgba(7, 11, 20, 0.58);
+        padding: 18px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .prompt-box .placeholder {
+        color: rgba(231, 237, 247, 0.28);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .caret {
+        width: 10px;
+        height: 18px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(124, 200, 255, 0.95), rgba(83, 215, 168, 0.55));
+        box-shadow: 0 0 22px rgba(124, 200, 255, 0.35);
+      }
+
+      .command-stack {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(104px, 1fr));
+        gap: 10px;
+      }
+
+      .button {
+        border: 1px solid var(--line-strong);
+        border-radius: 14px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+          rgba(16, 25, 47, 0.92);
+        color: var(--text);
+        padding: 12px 14px;
+        font-size: 0.92rem;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        text-align: center;
+        min-width: 0;
+        user-select: none;
+      }
+
+      .button.primary {
+        border-color: rgba(124, 200, 255, 0.35);
+        background:
+          linear-gradient(180deg, rgba(124, 200, 255, 0.28), rgba(124, 200, 255, 0.12)),
+          rgba(16, 25, 47, 0.92);
+      }
+
+      .button.danger {
+        border-color: rgba(255, 125, 125, 0.34);
+        background:
+          linear-gradient(180deg, rgba(255, 125, 125, 0.22), rgba(255, 125, 125, 0.08)),
+          rgba(16, 25, 47, 0.92);
+      }
+
+      .button.ghost {
+        color: var(--muted);
+      }
+
+      .button-row.bottom {
+        grid-template-columns: repeat(3, minmax(104px, 1fr));
+      }
+
+      .inspector .metric-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px 15px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .metric strong {
+        margin-bottom: 4px;
+        font-size: 0.88rem;
+      }
+
+      .metric .value {
+        font-family: var(--mono);
+        font-size: 1.02rem;
+        color: #eaf2fb;
+      }
+
+      .metric .bar {
+        margin-top: 10px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+      }
+
+      .metric .bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(124, 200, 255, 0.95), rgba(83, 215, 168, 0.9));
+      }
+
+      .metric .log-list {
+        display: grid;
+        gap: 8px;
+        margin: 12px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .metric .log-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(146, 166, 196, 0.12);
+      }
+
+      .metric .log-list li:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .current-speaker {
+        color: var(--accent-strong);
+      }
+
+      @media (max-width: 1180px) {
+        .workspace {
+          grid-template-columns: 260px minmax(0, 1fr);
+        }
+
+        .inspector {
+          grid-column: 1 / -1;
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .frame {
+          padding: 14px;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .composer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .button-row,
+        .button-row.bottom {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .button-row .button:last-child {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .button-row,
+        .button-row.bottom {
+          grid-template-columns: 1fr;
+        }
+
+        .status-strip {
+          justify-content: flex-start;
+        }
+
+        .timeline,
+        .sidebar,
+        .inspector,
+        .composer {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .timeline-track::before {
+          left: 13px;
+        }
+
+        .event {
+          grid-template-columns: 30px minmax(0, 1fr);
+          padding-right: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="app">
+        <header class="topbar">
+            <div class="brand">
+              <h1>LoopAI</h1>
+              <p>AI-to-AI Conversation Platform</p>
+              <p>Ver.1.0 completion image</p>
+            </div>
+          <div class="status-strip" aria-label="Connection Status">
+            <div class="chip"><span class="signal"></span><strong>Connection Status</strong> Stable</div>
+            <div class="chip"><strong>Pilot</strong> Human intervention only</div>
+            <div class="chip"><strong>Engine</strong> Looping enabled</div>
+          </div>
+        </header>
+
+        <section class="workspace" aria-label="LoopAI workspace">
+          <aside class="sidebar">
+            <div class="panel-title">
+              <h2>Connectors</h2>
+            </div>
+            <div class="panel-card">
+              <ul class="connector-list">
+                <li class="connector active">
+                  <div class="left">
+                    <span class="dot live"></span>
+                    <div>
+                      <strong>ChatGPT</strong>
+                      <span>Primary active speaker</span>
+                    </div>
+                  </div>
+                  <span class="state">Connected</span>
+                </li>
+                <li class="connector active">
+                  <div class="left">
+                    <span class="dot warm"></span>
+                    <div>
+                      <strong>Claude</strong>
+                      <span>Queued for handoff</span>
+                    </div>
+                  </div>
+                  <span class="state">Warm</span>
+                </li>
+                <li class="connector">
+                  <div class="left">
+                    <span class="dot off"></span>
+                    <div>
+                      <strong>Gemini</strong>
+                      <span>Available</span>
+                    </div>
+                  </div>
+                  <span class="state">Standby</span>
+                </li>
+                <li class="connector">
+                  <div class="left">
+                    <span class="dot off"></span>
+                    <div>
+                      <strong>Grok</strong>
+                      <span>Available</span>
+                    </div>
+                  </div>
+                  <span class="state">Standby</span>
+                </li>
+                <li class="connector">
+                  <div class="left">
+                    <span class="dot off"></span>
+                    <div>
+                      <strong>Perplexity</strong>
+                      <span>Available</span>
+                    </div>
+                  </div>
+                  <span class="state">Standby</span>
+                </li>
+                <li class="connector">
+                  <div class="left">
+                    <span class="dot off"></span>
+                    <div>
+                      <strong>Ollama</strong>
+                      <span>Local engine slot</span>
+                    </div>
+                  </div>
+                  <span class="state">Offline</span>
+                </li>
+              </ul>
+            </div>
+            <div class="sidebar-footer">
+              Human control stays outside the loop until a command, correction, or checkpoint is required.
+            </div>
+          </aside>
+
+          <main class="timeline">
+            <div class="timeline-header">
+              <h2>Conversation Timeline</h2>
+              <div class="meta">
+                <span>Autonomous exchange</span>
+                <span>•</span>
+                <span>Pilot intervention available</span>
+              </div>
+            </div>
+
+            <div class="timeline-track">
+              <article class="event">
+                <div class="rail"><span></span></div>
+                <div class="bubble">
+                  <div class="bubble-head">
+                    <div class="speaker">
+                      <span class="speaker-name">Pilot</span>
+                      <span class="speaker-tag">Command</span>
+                    </div>
+                    <div class="timestamp">00:00.000</div>
+                  </div>
+                  <p class="log">Start the synthesis loop. Keep the discussion concise, track open risks, and hand control back only when a checkpoint is necessary.</p>
+                  <div class="foot">
+                    <span class="flag">Prompt accepted</span>
+                    <span class="flag">Loop armed</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="event current">
+                <div class="rail"><span></span></div>
+                <div class="bubble">
+                  <div class="bubble-head">
+                    <div class="speaker">
+                      <span class="speaker-name current-speaker">ChatGPT</span>
+                      <span class="speaker-tag">Current Speaker</span>
+                    </div>
+                    <div class="timestamp">00:00.428</div>
+                  </div>
+                  <p class="log">Acknowledged. I will propose a first-pass plan, then yield to the next model for critique and expansion. The operator remains on standby for redirect or stop events.</p>
+                  <div class="foot">
+                    <span class="flag live">Speaking now</span>
+                    <span class="flag">Drafting next handoff</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="event">
+                <div class="rail"><span></span></div>
+                <div class="bubble">
+                  <div class="bubble-head">
+                    <div class="speaker">
+                      <span class="speaker-name">Claude</span>
+                      <span class="speaker-tag">Queued</span>
+                    </div>
+                    <div class="timestamp">00:01.212</div>
+                  </div>
+                  <p class="log">I will review the prior output for ambiguity, add missing constraints, and normalize the handoff into an operational sequence.</p>
+                  <div class="foot">
+                    <span class="flag">Queued response</span>
+                    <span class="flag">Awaiting turn</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="event">
+                <div class="rail"><span></span></div>
+                <div class="bubble">
+                  <div class="bubble-head">
+                    <div class="speaker">
+                      <span class="speaker-name">Gemini</span>
+                      <span class="speaker-tag">Standby</span>
+                    </div>
+                    <div class="timestamp">00:02.105</div>
+                  </div>
+                  <p class="log">If requested, I can compress the exchange into a checkpoint summary, then route the conversation back into the loop with the latest context.</p>
+                  <div class="foot">
+                    <span class="flag">Ready for turn</span>
+                    <span class="flag">Context preserved</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="event">
+                <div class="rail"><span></span></div>
+                <div class="bubble">
+                  <div class="bubble-head">
+                    <div class="speaker">
+                      <span class="speaker-name">Grok</span>
+                      <span class="speaker-tag">Standby</span>
+                    </div>
+                    <div class="timestamp">00:03.000</div>
+                  </div>
+                  <p class="log">Will challenge assumptions and surface failure modes before the loop continues.</p>
+                </div>
+              </article>
+            </div>
+          </main>
+
+          <aside class="inspector">
+            <div class="panel-title">
+              <h2>Conversation Status</h2>
+            </div>
+            <div class="metric-grid">
+              <section class="metric">
+                <strong>Current Speaker</strong>
+                <div class="value current-speaker">ChatGPT</div>
+              </section>
+
+              <section class="metric">
+                <strong>Next Speaker</strong>
+                <div class="value">Claude</div>
+              </section>
+
+              <section class="metric">
+                <strong>Checkpoint</strong>
+                <div class="value">Enabled at turn 4</div>
+                <div class="bar"><span style="width: 72%"></span></div>
+              </section>
+
+              <section class="metric">
+                <strong>Engine Status</strong>
+                <div class="value">Healthy</div>
+                <div class="bar"><span style="width: 88%"></span></div>
+              </section>
+
+              <section class="metric">
+                <strong>Latency</strong>
+                <div class="value">412 ms</div>
+              </section>
+
+              <section class="metric">
+                <strong>Queue</strong>
+                <div class="value">3 pending turns</div>
+                <ul class="log-list" aria-label="Queued turns">
+                  <li><span>Claude critique</span><span>ready</span></li>
+                  <li><span>Gemini summary</span><span>ready</span></li>
+                  <li><span>Grok challenge</span><span>ready</span></li>
+                </ul>
+              </section>
+
+              <section class="metric">
+                <strong>Logs</strong>
+                <ul class="log-list">
+                  <li><span>00:00.000</span><span>Pilot command received</span></li>
+                  <li><span>00:00.428</span><span>ChatGPT speaking</span></li>
+                  <li><span>00:01.212</span><span>Claude queued</span></li>
+                  <li><span>00:02.105</span><span>Gemini queued</span></li>
+                </ul>
+              </section>
+            </div>
+          </aside>
+        </section>
+
+        <section class="composer" aria-label="Pilot Command">
+          <div class="composer-head">
+            <h2>Pilot Command</h2>
+            <div class="composer-note">Human intervention is explicit, rare, and deliberate.</div>
+          </div>
+          <div class="composer-grid">
+            <div class="prompt-box" aria-label="Pilot command input">
+              <div class="placeholder">Type a directive, correction, or checkpoint request here.</div>
+              <div class="caret" aria-hidden="true"></div>
+            </div>
+            <div class="command-stack">
+              <div class="button-row">
+                <div class="button primary">Ask</div>
+                <div class="button danger">Stop</div>
+                <div class="button ghost">Redirect</div>
+              </div>
+              <div class="button-row bottom">
+                <div class="button ghost">Resume</div>
+                <div class="button ghost">Checkpoint</div>
+                <div class="button ghost">Rewind</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
